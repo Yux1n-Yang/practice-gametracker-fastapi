@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Advanced Metrics - GameTracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0f172a; margin: 0; padding: 40px; color: #f8fafc; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .back-link { text-decoration: none; color: #818cf8; font-weight: 500; display: inline-block; margin-bottom: 24px; }
+        .back-link:hover { text-decoration: underline; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 32px; margin-top: 12px; }
+        @media(min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } .full-row { grid-column: 1 / -1; } }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 28px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        h2 { margin-top: 0; font-size: 20px; color: white; letter-spacing: -0.025em; }
+        p { color: #94a3b8; font-size: 14px; margin-top: -4px; margin-bottom: 24px; }
+        .chart-wrapper { position: relative; width: 100%; height: 380px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard" class="back-link">← Back to System Dashboard</a>
+        
+        <div class="grid">
+            <!-- Grid Row 1: Overall Cumulative Comparison -->
+            <div class="card full-row">
+                <h2>Overall Cumulative Platform Progression</h2>
+                <p>Tracking the running growth curve of total collective gameplay hours across users.</p>
+                <div class="chart-wrapper">
+                    <canvas id="cumulativeUserChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Grid Row 2: Game Analytics Matrix -->
+            <div class="card full-row">
+                <h2>Game Catalog Volume Distribution</h2>
+                <p>Consolidated total system playtime mapped directly across individual titles.</p>
+                <div class="chart-wrapper">
+                    <canvas id="gameMetricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Setup Data Streams
+        const datesTimeline = JSON.parse('{{ chart_dates | safe }}');
+        const userDatasets = JSON.parse('{{ chart_datasets | safe }}');
+        const gameLabels = JSON.parse('{{ game_labels | safe }}');
+        const gameDataPoints = JSON.parse('{{ game_data | safe }}');
+
+        // 2. Render Chart 1: Cumulative Users Timeline
+        new Chart(document.getElementById('cumulativeUserChart').getContext('2d'), {
+            type: 'line',
+            data: { labels: datesTimeline, datasets: userDatasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#cbd5e1' } },
+                    tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw} cumulative hours` } }
+                },
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    y: { 
+                        grid: { color: '#334155' }, 
+                        ticks: { color: '#94a3b8' },
+                        title: { display: true, text: 'Total Hours Accrued', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // 3. Render Chart 2: Game-by-Game Breakdown Matrix
+        new Chart(document.getElementById('gameMetricsChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: gameLabels,
+                datasets: [{
+                    label: 'Total Hours Logged',
+                    data: gameDataPoints,
+                    backgroundColor: '#10b981',
+                    borderRadius: 6,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => ` Playtime: ${ctx.raw} total hours` } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                    y: { 
+                        grid: { color: '#334155' }, 
+                        ticks: { color: '#94a3b8' },
+                        title: { display: true, text: 'Hours Contributed', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

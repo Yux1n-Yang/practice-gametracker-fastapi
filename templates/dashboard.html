@@ -44,6 +44,7 @@
                 <p>🛡️ Administrator Control Dashboard Active</p>
                 <a href="/admin/users" class="btn btn-primary">Manage System Users</a>
                 <a href="/admin/games" class="btn btn-primary" style="margin-left: 10px; background-color: #10b981;">Manage Game Catalog</a>
+                <a href="/admin/charts" class="btn btn-primary" style="margin-left: 10px; background-color: #8b5cf6;">View Analytics Charts</a>
             </div>
         {% endif %}
 
@@ -93,12 +94,23 @@
                     {% endfor %}
                 </select>
                 
-                <label>Playtime Duration</label>
-                <input type="text" name="playtime" placeholder="e.g., 14 hours, 30 mins" required>
-                
+                <div class="form-group" style="display: flex; gap: 12px; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <label for="hours">Hours:</label>
+                        <input type="number" name="hours" id="hours" min="0" max="24" required placeholder="e.g. 2">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="minutes">Minutes:</label>
+                        <input type="number" name="minutes" id="minutes" min="0" max="59" required placeholder="e.g. 30">
+                    </div>
+                </div>
+
                 <label>Level / Benchmark reached</label>
                 <input type="text" name="levels" placeholder="e.g., Level 42, Act II" required>
-                
+                <div class="form-group">
+                    <label for="date_logged">Date Logged:</label>
+                    <input type="date" name="date_logged" id="date_logged" value="{{ today }}" required>
+                </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">Save Entry</button>
             </form>
         </div>
