@@ -58,6 +58,7 @@
                             <th>Game Title</th>
                             <th>Time Tracked</th>
                             <th>Current Level</th>
+                            <th>Date Logged</th> <!-- Added Header Column -->
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -65,9 +66,9 @@
                         {% for record in records %}
                             <tr>
                                 <td><strong>{{ record.game_name }}</strong></td>
-                                <!-- Updated variable placeholder to render backend-formatted time display -->
                                 <td>{{ record.playtime_display }}</td>
                                 <td><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 13px;">{{ record.levels }}</span></td>
+                                <td><span style="color: #64748b; font-family: monospace;">{{ record.date_logged }}</span></td> <!-- Added Data Column -->
                                 <td class="actions-cell">
                                     <a href="/game/edit/{{ record.id }}" class="btn btn-edit">Edit</a>
                                     <form action="/game/delete/{{ record.id }}" method="post" style="margin:0;">
