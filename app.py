@@ -110,17 +110,55 @@ def handle_login(request: Request, username: str = Form(...), password: str = Fo
     cursor.execute("SELECT password, isadmin, isenable, approved FROM users WHERE username = ?", (username,))
     result = cursor.fetchone()
     conn.close()
+    
     if result:
         stored_password, is_admin, is_enable, approved = result
+        
+        # 1. Registration Pending Template Trigger
         if not approved:
-            return HTMLResponse("<h3>Registration Pending Admin Authorization</h3><a href='/'>Go back</a>", status_code=403)
+            return templates.TemplateResponse(
+                request=request, name="notice.html",
+                context={
+                    "title": "Registration Pending",
+                    "message": "Your profile is successfully queued. An administrator must verify and activate your credentials before your first entry.",
+                    "type": "pending",
+                    "link_url": "/",
+                    "link_text": "Return to Sign In"
+                },
+                status_code=403
+            )
+            
+        # 2. Account Suspended Template Trigger
         if not is_enable:
-            return HTMLResponse("<h3>Account Suspended</h3><a href='/'>Go back</a>", status_code=403)
+            return templates.TemplateResponse(
+                request=request, name="notice.html",
+                context={
+                    "title": "Account Suspended",
+                    "message": "Access denied. This profile has been administratively deactivated. Please contact system support.",
+                    "type": "error",
+                    "link_url": "/",
+                    "link_text": "Return to Login"
+                },
+                status_code=403
+            )
+            
         if verify_password(stored_password, password):
             request.session["user"] = username
             request.session["isadmin"] = bool(is_admin)
             return RedirectResponse(url="/dashboard", status_code=303) 
-    return HTMLResponse("Invalid parameters. <a href='/'>Go back</a>", status_code=401)
+            
+    # 3. Authentication Failed Template Trigger
+    return templates.TemplateResponse(
+        request=request, name="notice.html",
+        context={
+            "title": "Authentication Failed",
+            "message": "The username or password entered does not match our platform configurations.",
+            "type": "error",
+            "link_url": "/",
+            "link_text": "Try Again"
+        },
+        status_code=401
+    )
 
 @app.get("/logout")
 def logout(request: Request):
@@ -132,16 +170,39 @@ def register_page(request: Request):
     return templates.TemplateResponse(request=request, name="register.html")
 
 @app.post("/register")
-def handle_register(username: str = Form(...), password: str = Form(...)):
+def handle_register(request: Request, username: str = Form(...), password: str = Form(...)):
     try:
         conn = sqlite3.connect("users.db")
         cursor = conn.cursor()
         cursor.execute("INSERT INTO users (username, password, isadmin, isenable, approved) VALUES (?, ?, 0, 0, 0)", (username, hash_password(password)))
         conn.commit()
         conn.close()
-        return HTMLResponse("<h3>Registration Logged. Awaiting admin clearance.</h3><a href='/'>Return to login</a>", status_code=201)
+        
+        # 4. Successful Registration Template Trigger
+        return templates.TemplateResponse(
+            request=request, name="notice.html",
+            context={
+                "title": "Registration Received!",
+                "message": "Your request has been filed cleanly. Please allow your platform system administrators time to verify and approve your tracking dashboard access.",
+                "type": "success",
+                "link_url": "/",
+                "link_text": "Back to Sign In"
+            },
+            status_code=201
+        )
     except sqlite3.IntegrityError:
-        return HTMLResponse("Username taken. <a href='/register'>Try again</a>", status_code=400)
+        # 5. Duplicate Registration Template Trigger
+        return templates.TemplateResponse(
+            request=request, name="notice.html",
+            context={
+                "title": "Username Claimed",
+                "message": "That exact username already lives inside our tracking system network index. Please try another one.",
+                "type": "error",
+                "link_url": "/register",
+                "link_text": "Try Another Username"
+            },
+            status_code=400
+        )
 
 
 # ==========================================
